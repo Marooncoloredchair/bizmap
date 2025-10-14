@@ -365,4 +365,4 @@ class AIService {
   }
 }
 
-module.exports = new AIService()
+module.exports = AIService

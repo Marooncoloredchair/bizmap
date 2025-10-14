@@ -79,6 +79,9 @@ const AISearchInterface = ({ onSearchComplete, isLoading, setIsLoading, setIsInC
     // If this is the first message, transition to conversation mode
     if (currentStep === 'search') {
       setCurrentStep('conversation')
+      // Immediately trigger conversation start for logo animation
+      setIsInConversation(true)
+      onConversationStart && onConversationStart()
     }
 
     setIsLoading(true)
@@ -146,6 +149,8 @@ const AISearchInterface = ({ onSearchComplete, isLoading, setIsLoading, setIsInC
     }
 
     try {
+      console.log('Sending AI request:', { userMessage, searchData, currentStep })
+      
       const response = await fetch('/api/ai-analyze', {
         method: 'POST',
         headers: {
@@ -158,7 +163,14 @@ const AISearchInterface = ({ onSearchComplete, isLoading, setIsLoading, setIsInC
         })
       })
 
+      console.log('AI response status:', response.status)
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
       const data = await response.json()
+      console.log('AI response data:', data)
       
       if (data.error) {
         throw new Error(data.error)
@@ -230,7 +242,21 @@ const AISearchInterface = ({ onSearchComplete, isLoading, setIsLoading, setIsInC
 
     } catch (error) {
       console.error('Error:', error)
-      addMessage('ai', "I'm sorry, I encountered an error. Please try again or use the traditional search form.")
+      
+      // Fallback response based on user input
+      let fallbackResponse = "I'd love to help you find the perfect location! "
+      
+      if (userMessage.toLowerCase().includes('barber') || userMessage.toLowerCase().includes('barbershop')) {
+        fallbackResponse += "A barbershop is a great business idea! Where are you thinking of opening it? Are you looking for a downtown location or a neighborhood spot?"
+      } else if (userMessage.toLowerCase().includes('coffee') || userMessage.toLowerCase().includes('cafe')) {
+        fallbackResponse += "A coffee shop sounds wonderful! What type of atmosphere are you going for? Are you thinking downtown or a quieter area?"
+      } else if (userMessage.toLowerCase().includes('restaurant') || userMessage.toLowerCase().includes('food')) {
+        fallbackResponse += "A restaurant is exciting! What cuisine are you planning? And where are you thinking of opening it?"
+      } else {
+        fallbackResponse += "Tell me more about your business idea! What type of business are you planning and where would you like to open it?"
+      }
+      
+      addMessage('ai', fallbackResponse)
     } finally {
       setIsLoading(false)
       setIsTyping(false)

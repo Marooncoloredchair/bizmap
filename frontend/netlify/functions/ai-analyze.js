@@ -1,4 +1,5 @@
-const { aiService } = require('./aiService');
+const AIService = require('./aiService');
+const aiService = new AIService();
 
 exports.handler = async (event, context) => {
   // Enable CORS

@@ -76,8 +76,8 @@ function AppContent() {
 
       {/* BizMap Title */}
       {searchMode === 'ai' ? (
-        <div className={`absolute top-48 left-1/2 transform -translate-x-1/2 z-20 transition-all duration-1000 ease-in-out ${
-          searchData || showConversationInterface ? 'opacity-0 -translate-y-full' : 'opacity-100 translate-y-0'
+        <div className={`absolute top-48 left-1/2 transform -translate-x-1/2 z-20 transition-all duration-500 ease-out ${
+          searchData || showConversationInterface ? 'opacity-0 -translate-y-full scale-75' : 'opacity-100 translate-y-0 scale-100'
         }`}>
           <h1 className={`text-6xl font-bold transition-colors duration-300 ${
             isDarkMode ? 'text-white' : 'text-blue-600'
