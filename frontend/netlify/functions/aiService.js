@@ -92,8 +92,11 @@ class AIService {
   }
 
   getMockAIResponse(userInput, context) {
-    // Intelligent mock responses based on keywords
+    // Intelligent mock responses based on keywords and conversation state
     const input = userInput.toLowerCase()
+    
+    // Check if this is a follow-up response (not initial business idea)
+    const isFollowUp = context.business_type && context.business_type !== 'General Business'
     
     // Business type detection
     let businessType = 'General Business'
@@ -124,6 +127,10 @@ class AIService {
       businessType = 'Beauty Salon'
       businessCategory = 'service'
       confidenceScore = 85
+    } else if (input.includes('barber') || input.includes('barbershop')) {
+      businessType = 'Barbershop'
+      businessCategory = 'service'
+      confidenceScore = 90
     } else if (input.includes('auto') || input.includes('car')) {
       businessType = 'Auto Repair'
       businessCategory = 'automotive'
@@ -156,6 +163,9 @@ class AIService {
       operatingHours = 'evening'
     }
 
+    // Create conversational response based on context
+    const conversationState = this.getConversationState(context, businessType, input)
+    
     return {
       business_type: businessType,
       business_category: businessCategory,
@@ -165,9 +175,10 @@ class AIService {
       operating_hours: operatingHours,
       special_requirements: this.extractRequirements(input),
       confidence_score: confidenceScore,
-      suggested_questions: this.generateQuestions(businessType, businessCategory, confidenceScore),
-      clarification_needed: confidenceScore < 70,
-      follow_up_question: confidenceScore < 70 ? this.generateQuestions(businessType, businessCategory, confidenceScore)[0] : ''
+      suggested_questions: this.generateConversationalQuestions(context, businessType, businessCategory, confidenceScore, conversationState),
+      clarification_needed: conversationState.needsMoreInfo,
+      follow_up_question: this.generateFollowUpQuestion(context, businessType, conversationState),
+      conversation_stage: conversationState.stage
     }
   }
 
@@ -213,6 +224,93 @@ class AIService {
     questions.push('Do you have any specific location requirements?')
     
     return questions.slice(0, 3) // Return top 3 questions
+  }
+
+  getConversationState(context, businessType, input) {
+    // Determine conversation stage and what info we still need
+    const hasBusinessType = businessType !== 'General Business'
+    const hasLocation = context.location_preference && context.location_preference !== 'Any Location'
+    const hasBudget = context.budget_tier && context.budget_tier !== 'mid'
+    const hasHours = context.operating_hours && context.operating_hours !== 'both'
+    const hasDemographics = context.target_demographics && context.target_demographics.length > 0
+    
+    let stage = 'initial'
+    let needsMoreInfo = true
+    
+    if (!hasBusinessType) {
+      stage = 'business_type'
+    } else if (!hasLocation) {
+      stage = 'location'
+    } else if (!hasBudget) {
+      stage = 'budget'
+    } else if (!hasHours) {
+      stage = 'hours'
+    } else if (!hasDemographics) {
+      stage = 'demographics'
+    } else {
+      stage = 'ready'
+      needsMoreInfo = false
+    }
+    
+    return { stage, needsMoreInfo }
+  }
+
+  generateConversationalQuestions(context, businessType, category, confidence, conversationState) {
+    const questions = []
+    
+    switch (conversationState.stage) {
+      case 'business_type':
+        questions.push(`That sounds interesting! What specific type of ${businessType.toLowerCase()} are you thinking about?`)
+        questions.push('Are you planning a traditional barbershop or something more modern?')
+        break
+        
+      case 'location':
+        questions.push('Great choice! Where are you thinking of opening this barbershop?')
+        questions.push('Are you looking for a downtown location, or would you prefer a neighborhood spot?')
+        questions.push('Do you want to be near other businesses, or in a more residential area?')
+        break
+        
+      case 'budget':
+        questions.push('What\'s your budget range for rent and setup?')
+        questions.push('Are you looking for a premium location or something more affordable?')
+        break
+        
+      case 'hours':
+        questions.push('What hours are you planning to operate?')
+        questions.push('Will you be open during the day, evenings, or both?')
+        break
+        
+      case 'demographics':
+        questions.push('Who\'s your target customer?')
+        questions.push('Are you focusing on professionals, students, families, or a mix?')
+        break
+        
+      case 'ready':
+        questions.push('Perfect! I have enough information to find you some great locations.')
+        questions.push('Would you like me to analyze potential spots for your barbershop?')
+        break
+    }
+    
+    return questions.slice(0, 2) // Return max 2 questions
+  }
+
+  generateFollowUpQuestion(context, businessType, conversationState) {
+    switch (conversationState.stage) {
+      case 'business_type':
+        return 'What specific type of barbershop are you planning?'
+      case 'location':
+        return 'Where are you thinking of opening this barbershop?'
+      case 'budget':
+        return 'What\'s your budget range for rent and setup?'
+      case 'hours':
+        return 'What hours are you planning to operate?'
+      case 'demographics':
+        return 'Who\'s your target customer?'
+      case 'ready':
+        return 'Would you like me to analyze potential locations for your barbershop?'
+      default:
+        return 'Tell me more about your business idea!'
+    }
   }
 
   getDefaultResponse() {
