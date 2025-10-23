@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import LazyMap from './LazyMap'
 import InteractiveFilters from './InteractiveFilters'
 import { exportToPDF, exportMapToPDF } from '../utils/pdfExport'
@@ -323,11 +323,20 @@ const ResultsDisplay = ({ data, onNewSearch, isLoading, setIsLoading }) => {
 
               {/* Center Map */}
               <div className="flex-1 relative h-64 lg:h-auto">
-                <LazyMap 
-                  data={data}
-                  selectedLocation={selectedLocation}
-                  onLocationSelect={setSelectedLocation}
-                />
+                <Suspense fallback={
+                  <div className="flex items-center justify-center h-full bg-gray-100">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
+                      <p className="text-gray-600">Loading map...</p>
+                    </div>
+                  </div>
+                }>
+                  <LazyMap 
+                    data={data}
+                    selectedLocation={selectedLocation}
+                    onLocationSelect={setSelectedLocation}
+                  />
+                </Suspense>
         
         {/* Map Overlay with BizMap title and controls */}
         <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-[1000]">
