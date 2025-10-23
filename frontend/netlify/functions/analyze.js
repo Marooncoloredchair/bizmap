@@ -55,7 +55,9 @@ function generateMockLocations(business, location, radius, priceTier, daypart) {
         foot_traffic: 85,
         vacancy_rate: 15
       },
-      coordinates: [41.8236, -71.4222]
+      coordinates: [41.8236, -71.4222],
+      lat: 41.8236,
+      lon: -71.4222
     },
     {
       name: "University District",
@@ -75,7 +77,9 @@ function generateMockLocations(business, location, radius, priceTier, daypart) {
         foot_traffic: 92,
         vacancy_rate: 8
       },
-      coordinates: [41.8267, -71.4156]
+      coordinates: [41.8267, -71.4156],
+      lat: 41.8267,
+      lon: -71.4156
     },
     {
       name: "Waterfront Area",
@@ -95,7 +99,9 @@ function generateMockLocations(business, location, radius, priceTier, daypart) {
         foot_traffic: 78,
         vacancy_rate: 12
       },
-      coordinates: [41.8200, -71.4300]
+      coordinates: [41.8200, -71.4300],
+      lat: 41.8200,
+      lon: -71.4300
     }
   ];
 

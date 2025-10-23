@@ -22,10 +22,31 @@ function MapCenter({ center }) {
 }
 
 const MapComponent = ({ data, selectedLocation, onLocationSelect }) => {
+  // Safety checks for coordinates
+  const safeData = data || {}
+  const locations = safeData.locations || []
+  const bestLocation = safeData.best_location || locations[0]
+  
+  // Default coordinates for Providence, RI
+  const defaultLat = 41.8240
+  const defaultLon = -71.4187
+  
+  // Get center coordinates with fallbacks
+  const centerLat = selectedLocation?.lat || bestLocation?.lat || defaultLat
+  const centerLon = selectedLocation?.lon || bestLocation?.lon || defaultLon
+  
+  // Filter locations with valid coordinates
+  const validLocations = locations.filter(loc => 
+    loc.lat !== undefined && loc.lon !== undefined && 
+    !isNaN(loc.lat) && !isNaN(loc.lon)
+  )
+  
+  console.log('MapComponent data:', { data, selectedLocation, validLocations })
+  
   return (
     <MapContainer
       id="map-container"
-      center={[selectedLocation?.lat || data.best_location?.lat || 41.8240, selectedLocation?.lon || data.best_location?.lon || -71.4187]}
+      center={[centerLat, centerLon]}
       zoom={13}
       style={{ height: '100%', width: '100%' }}
     >
@@ -33,8 +54,8 @@ const MapComponent = ({ data, selectedLocation, onLocationSelect }) => {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
-      <MapCenter center={selectedLocation ? [selectedLocation.lat, selectedLocation.lon] : null} />
-      {data.locations?.map((location, index) => (
+      <MapCenter center={selectedLocation && selectedLocation.lat && selectedLocation.lon ? [selectedLocation.lat, selectedLocation.lon] : null} />
+      {validLocations.map((location, index) => (
         <Marker 
           key={index}
           position={[location.lat, location.lon]}
@@ -44,10 +65,10 @@ const MapComponent = ({ data, selectedLocation, onLocationSelect }) => {
         >
           <Popup>
             <div>
-              <h4 className="font-bold">{location.name}</h4>
-              <p>Score: {location.score}%</p>
-              <p>{data.business} opportunity</p>
-              <p className="text-xs text-gray-600">Rank: #{location.rank}</p>
+              <h4 className="font-bold">{location.name || 'Unknown Location'}</h4>
+              <p>Score: {location.score || 0}%</p>
+              <p>{safeData.business || 'Business'} opportunity</p>
+              <p className="text-xs text-gray-600">Rank: #{location.rank || index + 1}</p>
             </div>
           </Popup>
         </Marker>
