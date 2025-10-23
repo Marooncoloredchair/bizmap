@@ -286,7 +286,7 @@ class AIService {
         break
         
       case 'ready':
-        questions.push('Perfect! I have enough information to find you some great locations.')
+        questions.push('I have enough information to find you some good locations.')
         questions.push('Would you like me to analyze potential spots for your barbershop?')
         break
     }

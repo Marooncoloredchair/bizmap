@@ -1,148 +1,106 @@
-# 🗺️ BizMap - AI-Powered Business Location Finder
+# BizMap - Business Location Finder
 
-Find the perfect location for your business with AI-powered insights and data-driven analysis.
+A simple tool to help you find good locations for your business. Uses AI to chat with you about what you're looking for and shows you some spots on a map.
 
-## ✨ Features
+## What it does
 
-- 🤖 **AI-Powered Search** - Conversational interface for business location discovery
-- 📊 **Interactive Maps** - Visualize potential locations with detailed analytics
-- 📱 **Mobile Responsive** - Works perfectly on all devices
-- 🎨 **Modern UI** - Clean, professional design with smooth animations
-- 📋 **Export Options** - Download results as PDF or CSV
-- 🌙 **Dark Mode** - Toggle between light and dark themes
-- 📈 **Real-time Analysis** - Get instant location insights and scores
+- **AI Chat** - Just tell it what kind of business you want to start
+- **Maps** - Shows you locations with scores and details
+- **Works on phone** - Looks good on any device
+- **Export stuff** - Download your results as PDF or CSV
+- **Dark mode** - Switch between light and dark
 
-## 🚀 Live Demo
+## Try it out
 
-Visit the live site: [https://bizmap.netlify.app](https://bizmap.netlify.app)
+Live site: [https://bizmap.netlify.app](https://bizmap.netlify.app)
 
-## 🛠️ Tech Stack
+## Tech stuff
 
 - **Frontend**: React, Vite, Tailwind CSS
-- **Backend**: Netlify Functions (Serverless)
-- **Maps**: Leaflet/React-Leaflet
-- **AI**: OpenAI API (with mock fallback)
-- **Deployment**: Netlify
+- **Backend**: Netlify Functions
+- **Maps**: Leaflet
+- **AI**: OpenAI API (has mock data if you don't have a key)
+- **Hosting**: Netlify
 
-## 🚀 Quick Start
+## How to run it locally
 
-### Prerequisites
-- Node.js 18+
-- npm or yarn
+You need Node.js installed.
 
-### Installation
-
-1. **Clone the repository**
+1. Clone this repo
    ```bash
    git clone https://github.com/yourusername/bizmap.git
    cd bizmap
    ```
 
-2. **Install dependencies**
+2. Install stuff
    ```bash
    cd frontend
    npm install
    ```
 
-3. **Start development server**
+3. Start it up
    ```bash
    npm run dev
    ```
 
-4. **Open in browser**
-   ```
-   http://localhost:3000
-   ```
+4. Open http://localhost:3000 in your browser
 
-## 📁 Project Structure
+## File structure
 
 ```
 bizmap/
-├── frontend/                 # React frontend
+├── frontend/                 # The main app
 │   ├── src/
 │   │   ├── components/      # React components
 │   │   ├── contexts/        # React contexts
 │   │   ├── hooks/          # Custom hooks
-│   │   └── utils/          # Utility functions
+│   │   └── utils/          # Helper functions
 │   ├── netlify/
 │   │   └── functions/      # Serverless functions
-│   └── public/             # Static assets
-├── backend/                 # Original backend (for reference)
+│   └── public/             # Images and stuff
+├── backend/                 # Old backend (not used anymore)
 └── docs/                   # Documentation
 ```
 
-## 🌐 Deployment
+## Deploying to Netlify
 
-This project is configured for **Netlify** deployment:
+1. Go to [netlify.com](https://netlify.com)
+2. Connect your GitHub repo
+3. It should auto-deploy
 
-1. **Connect to Netlify**
-   - Go to [netlify.com](https://netlify.com)
-   - Connect your GitHub repository
-   - Deploy automatically
+Build settings:
+- Build command: `cd frontend && npm run build`
+- Publish directory: `frontend/dist`
 
-2. **Build Settings**
-   - Build command: `cd frontend && npm run build`
-   - Publish directory: `frontend/dist`
+## API keys (optional)
 
-## 🔧 Configuration
-
-### Environment Variables
-
-Create a `.env` file in the `frontend` directory:
+If you want real AI responses, add a `.env` file in the `frontend` directory:
 
 ```env
-VITE_OPENAI_API_KEY=your_openai_api_key_here
+VITE_OPENAI_API_KEY=your_key_here
 ```
 
-### API Keys (Optional)
+It works fine without any keys using mock data.
 
-- **OpenAI API**: For real AI responses (works without it using mock data)
-- **Google Places API**: For real location data (works without it using mock data)
+## How it works
 
-## 📱 Features in Detail
+**AI Chat**: You just type what business you want to start and it asks you questions about location, budget, etc.
 
-### AI Search Interface
-- Conversational business location discovery
-- Natural language processing
-- Contextual follow-up questions
-- Intelligent business type detection
+**Traditional Search**: Fill out a form with business type, location, etc.
 
-### Traditional Search
-- Step-by-step guided process
-- Business category selection
-- Location and radius preferences
-- Price tier and operating hours
+**Results**: Shows you a map with locations and scores, plus you can download the data.
 
-### Results Dashboard
-- Interactive map visualization
-- Location scoring and analytics
-- Detailed metrics and insights
-- Export capabilities (PDF/CSV)
+## Contributing
 
-## 🤝 Contributing
+1. Fork the repo
+2. Make your changes
+3. Push to a branch
+4. Make a pull request
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+## License
 
-## 📄 License
+MIT License - do whatever you want with it.
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## Support
 
-## 🙏 Acknowledgments
-
-- Built with React and Vite
-- Styled with Tailwind CSS
-- Maps powered by Leaflet
-- Deployed on Netlify
-- AI powered by OpenAI
-
-## 📞 Support
-
-For questions or feedback, scan the QR code on the results page or open an issue on GitHub.
-
----
-
-**Made with ❤️ for entrepreneurs and business owners**
+If something's broken, scan the QR code on the results page or open an issue on GitHub.

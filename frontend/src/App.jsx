@@ -81,23 +81,15 @@ function AppContent() {
         }`}>
           <h1 className={`text-6xl font-bold transition-colors duration-300 ${
             isDarkMode ? 'text-white' : 'text-blue-600'
-          }`} style={{textShadow: '0 0 15px rgba(59,130,246,0.3), 0 0 30px rgba(59,130,246,0.2), 0 0 45px rgba(59,130,246,0.1)'}}>BizMap</h1>
+          }`}>BizMap</h1>
         </div>
       ) : (
         <div className="fixed top-4 left-4 z-20">
-          <h1 className={`text-2xl font-extrabold ${isDarkMode ? 'text-white' : 'text-blue-600'}`} style={{textShadow: '0 0 10px rgba(59,130,246,0.3)'}}>BizMap</h1>
+          <h1 className={`text-2xl font-extrabold ${isDarkMode ? 'text-white' : 'text-blue-600'}`}>BizMap</h1>
         </div>
       )}
 
       <main className="h-screen flex items-center justify-center px-4 relative pt-4 pb-4 overflow-hidden">
-        {/* Floating Background Elements */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-20 left-10 w-20 h-20 bg-blue-500/10 rounded-full animate-pulse" style={{ animationDelay: '0s' }}></div>
-          <div className="absolute top-40 right-20 w-16 h-16 bg-blue-500/15 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
-          <div className="absolute bottom-32 left-1/4 w-12 h-12 bg-blue-500/20 rounded-full animate-pulse" style={{ animationDelay: '2s' }}></div>
-          <div className="absolute bottom-20 right-1/3 w-24 h-24 bg-blue-500/5 rounded-full animate-pulse" style={{ animationDelay: '1.5s' }}></div>
-          <div className="absolute top-1/2 left-5 w-8 h-8 bg-blue-500/25 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
-        </div>
 
         {/* Search Interface - slides up and out */}
         <div className={`absolute inset-0 flex items-center justify-center transition-all duration-1000 ease-in-out z-10 ${

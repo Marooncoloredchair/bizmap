@@ -130,7 +130,7 @@ const AISearchInterface = ({ onSearchComplete, isLoading, setIsLoading, setIsInC
       const asked = askNextQuestionIfNeeded()
       if (!asked) {
         // If we already have enough info, ask for explicit confirmation
-        addMessage('ai', 'Awesome. When you are ready, say “analyze locations now” and I will run the analysis.')
+        addMessage('ai', 'Awesome. When you are ready, say "analyze locations now" and I will run the analysis.')
       }
       setIsLoading(false)
       setIsTyping(false)

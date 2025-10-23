@@ -368,7 +368,7 @@ const ResultsDisplay = ({ data, onNewSearch, isLoading, setIsLoading }) => {
             <div className="space-y-2">
               {selectedLocation?.metrics?.competitors <= 2 && (
                 <div className="flex items-start space-x-2">
-                  <span className="text-green-500 text-sm">✅</span>
+                  <span className="text-green-500 text-sm">•</span>
                   <span className="text-xs text-gray-700">
                     Only {selectedLocation?.metrics?.competitors} competitors within 1 mile (low competition)
                   </span>
@@ -376,7 +376,7 @@ const ResultsDisplay = ({ data, onNewSearch, isLoading, setIsLoading }) => {
               )}
               {selectedLocation?.metrics?.median_income >= 60000 && (
                 <div className="flex items-start space-x-2">
-                  <span className="text-green-500 text-sm">✅</span>
+                  <span className="text-green-500 text-sm">•</span>
                   <span className="text-xs text-gray-700">
                     High median income ${selectedLocation?.metrics?.median_income?.toLocaleString()} (premium pricing potential)
                   </span>
@@ -384,7 +384,7 @@ const ResultsDisplay = ({ data, onNewSearch, isLoading, setIsLoading }) => {
               )}
               {selectedLocation?.metrics?.population >= 15000 && (
                 <div className="flex items-start space-x-2">
-                  <span className="text-green-500 text-sm">✅</span>
+                  <span className="text-green-500 text-sm">•</span>
                   <span className="text-xs text-gray-700">
                     Strong population base of {selectedLocation?.metrics?.population?.toLocaleString()} people
                   </span>
@@ -392,7 +392,7 @@ const ResultsDisplay = ({ data, onNewSearch, isLoading, setIsLoading }) => {
               )}
               {selectedLocation?.subscores?.category_fit >= 0.7 && (
                 <div className="flex items-start space-x-2">
-                  <span className="text-green-500 text-sm">✅</span>
+                  <span className="text-green-500 text-sm">•</span>
                   <span className="text-xs text-gray-700">
                     High market fit ({Math.round((selectedLocation?.subscores?.category_fit || 0) * 100)}%) - complementary businesses nearby
                   </span>
