@@ -87,14 +87,67 @@ const AISearchInterface = ({ onSearchComplete, isLoading, setIsLoading, setIsInC
     setIsLoading(true)
     setIsTyping(true)
 
-    // Check if user wants to proceed to analysis
-    const proceedToAnalysis = userMessage.toLowerCase().includes('yes') || 
-                             userMessage.toLowerCase().includes('analyze') || 
-                             userMessage.toLowerCase().includes('find') ||
-                             userMessage.toLowerCase().includes('location') ||
-                             userMessage.toLowerCase().includes('proceed')
+    // Decide how to route this message
+    const lowerMsg = userMessage.toLowerCase()
+    const isAffirmative = /\b(yes|yeah|yep|sure|ok|okay|affirmative)\b/.test(lowerMsg)
+    const isExplicitAnalyze = lowerMsg.includes('analyze locations now') ||
+                              lowerMsg.includes('show locations') ||
+                              lowerMsg.includes('analyze locations') ||
+                              lowerMsg.includes('start analysis') ||
+                              lowerMsg.includes("let's analyze") ||
+                              lowerMsg.includes('begin analysis')
+
+    // Helper: ask the next follow-up question if key details are missing
+    const askNextQuestionIfNeeded = () => {
+      const missing = []
+      if (!searchData.location_preference) missing.push('location')
+      if (!searchData.budget_tier) missing.push('budget')
+      if (!searchData.operating_hours) missing.push('hours')
+      if (!searchData.target_demographic) missing.push('demographics')
+
+      if (missing.length === 0) {
+        return false
+      }
+
+      let q = ''
+      const first = missing[0]
+      if (first === 'location') {
+        q = 'Great! Which area are you targeting? Downtown, neighborhood, or a specific part of the city?'
+      } else if (first === 'budget') {
+        q = "What's your approximate monthly budget for rent? Low, mid, or premium?"
+      } else if (first === 'hours') {
+        q = 'What hours will you operate? Daytime, evenings, or both?'
+      } else if (first === 'demographics') {
+        q = "Who's your target customer? Professionals, students, families, or a mix?"
+      }
+      addMessage('ai', q)
+      return true
+    }
+
+    // If the user simply says yes, keep the conversation going instead of analyzing
+    if (isAffirmative && !isExplicitAnalyze) {
+      // Ask for the next missing detail, if any
+      const asked = askNextQuestionIfNeeded()
+      if (!asked) {
+        // If we already have enough info, ask for explicit confirmation
+        addMessage('ai', 'Awesome. When you are ready, say “analyze locations now” and I will run the analysis.')
+      }
+      setIsLoading(false)
+      setIsTyping(false)
+      return
+    }
+
+    // Check if user explicitly wants to proceed to analysis
+    const proceedToAnalysis = isExplicitAnalyze
 
     if (proceedToAnalysis && searchData.business_type) {
+      // Require minimum context before analysis
+      if (!searchData.location_preference) {
+        addMessage('ai', 'Before I analyze locations, which area are you most interested in? Downtown, neighborhood, or a specific district?')
+        setIsLoading(false)
+        setIsTyping(false)
+        return
+      }
       // User wants to proceed to analysis - call the backend to get full analysis
       addMessage('ai', "Perfect! Let me analyze the best locations for you...")
       
@@ -112,6 +165,9 @@ const AISearchInterface = ({ onSearchComplete, isLoading, setIsLoading, setIsInC
           })
         })
 
+        if (!response.ok) {
+          throw new Error(`HTTP error during ai-analyze: ${response.status}`)
+        }
         const data = await response.json()
         
         if (data.error) {
@@ -133,13 +189,30 @@ const AISearchInterface = ({ onSearchComplete, isLoading, setIsLoading, setIsInC
           daypart: searchData.operating_hours || 'both'
         }
 
+        console.log('Sending analyze request with payload:', analyzePayload)
+
         const analyzeRes = await fetch('/api/analyze', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(analyzePayload)
         })
+        if (!analyzeRes.ok) {
+          throw new Error(`HTTP error during analyze: ${analyzeRes.status}`)
+        }
         const analyzeData = await analyzeRes.json()
-        setTimeout(() => onSearchComplete(analyzeData), 800)
+        console.log('Analyze response data:', analyzeData)
+        
+        // Ensure the data has the required structure for ResultsDisplay
+        const transformedData = {
+          business: searchData.business_type || 'Restaurant',
+          location: searchData.location_preference || 'Providence, RI',
+          radius: '1 mile',
+          confidence: searchData.confidence_score || 85,
+          ...analyzeData
+        }
+        
+        console.log('Transformed data for ResultsDisplay:', transformedData)
+        setTimeout(() => onSearchComplete(transformedData), 800)
         return
       } catch (error) {
         console.error('Error:', error)

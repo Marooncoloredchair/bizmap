@@ -1,6 +1,6 @@
-const { aiService } = require('./aiService');
-const { placesService } = require('./placesService');
-const { censusService } = require('./censusService');
+const AIService = require('./aiService');
+const PlacesService = require('./placesService');
+const CensusService = require('./censusService');
 
 exports.handler = async (event, context) => {
   // Enable CORS

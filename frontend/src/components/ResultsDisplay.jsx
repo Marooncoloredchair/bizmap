@@ -5,16 +5,21 @@ import { exportToPDF, exportMapToPDF } from '../utils/pdfExport'
 
 
 const ResultsDisplay = ({ data, onNewSearch, isLoading, setIsLoading }) => {
-  const [selectedLocation, setSelectedLocation] = useState(data.best_location || data.locations?.[0])
+  // Add safety checks for data structure
+  const safeData = data || {}
+  const locations = safeData.locations || []
+  const bestLocation = safeData.best_location || locations[0]
+  
+  const [selectedLocation, setSelectedLocation] = useState(bestLocation)
   const [showFilters, setShowFilters] = useState(false)
   const [filters, setFilters] = useState({})
   
   // Update selected location when data changes
   useEffect(() => {
-    if (data.best_location || data.locations?.[0]) {
-      setSelectedLocation(data.best_location || data.locations?.[0])
+    if (bestLocation) {
+      setSelectedLocation(bestLocation)
     }
-  }, [data])
+  }, [bestLocation])
 
   const handleFiltersChange = (newFilters) => {
     setFilters(newFilters)
@@ -69,11 +74,11 @@ const ResultsDisplay = ({ data, onNewSearch, isLoading, setIsLoading }) => {
   const exportToCSV = () => {
     const csvData = [
       ['Metric', 'Value'],
-      ['Business', data.business],
-      ['Location', data.location],
-      ['Radius', data.radius],
-      ['Score', selectedLocation?.score || data.best_location?.score || 0],
-      ['Recommended Area', selectedLocation?.name || data.best_location?.name || ''],
+      ['Business', safeData.business || 'Unknown'],
+      ['Location', safeData.location || 'Unknown'],
+      ['Radius', safeData.radius || '1 mile'],
+      ['Score', selectedLocation?.score || bestLocation?.score || 0],
+      ['Recommended Area', selectedLocation?.name || bestLocation?.name || ''],
       ['Population', selectedLocation?.metrics?.population || 0],
       ['Competitors', selectedLocation?.metrics?.competitors || 0],
       ['Median Income', selectedLocation?.metrics?.median_income || 0],
@@ -81,7 +86,7 @@ const ResultsDisplay = ({ data, onNewSearch, isLoading, setIsLoading }) => {
       ['Vacancy Index', selectedLocation?.metrics?.vacancy_index || 0],
       ['Nearest Competitor Miles', selectedLocation?.metrics?.nearest_competitor_miles?.toFixed(1) || 0],
       ['Category Fit', selectedLocation?.metrics?.category_fit || 0],
-      ['Confidence', data.confidence]
+      ['Confidence', safeData.confidence || 85]
     ]
     
     const csvContent = csvData.map(row => row.join(',')).join('\n')
@@ -143,27 +148,33 @@ const ResultsDisplay = ({ data, onNewSearch, isLoading, setIsLoading }) => {
           <div>
             <h3 className="text-sm font-bold mb-2 text-gray-900">All Locations</h3>
             <div className="space-y-1">
-              {data.locations?.sort((a, b) => a.rank - b.rank).map((location, index) => (
-                <div 
-                  key={index}
-                  onClick={() => setSelectedLocation(location)}
-                  className={`p-2 rounded cursor-pointer transition-colors ${
-                    selectedLocation?.name === location.name 
-                      ? 'bg-blue-100 border-2 border-blue-500' 
-                      : 'bg-gray-50 hover:bg-gray-100 border border-gray-200'
-                  }`}
-                >
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <div className="font-bold text-xs">{location.name}</div>
-                      <div className="text-xs text-gray-600">Rank #{location.rank}</div>
-                    </div>
-                    <div className={`px-1 py-1 rounded text-xs font-bold ${getScoreColor(location.score)}`}>
-                      {location.score}%
+              {locations.length > 0 ? (
+                locations.sort((a, b) => (a.rank || 0) - (b.rank || 0)).map((location, index) => (
+                  <div 
+                    key={index}
+                    onClick={() => setSelectedLocation(location)}
+                    className={`p-2 rounded cursor-pointer transition-colors ${
+                      selectedLocation?.name === location.name 
+                        ? 'bg-blue-100 border-2 border-blue-500' 
+                        : 'bg-gray-50 hover:bg-gray-100 border border-gray-200'
+                    }`}
+                  >
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <div className="font-bold text-xs">{location.name || 'Unknown Location'}</div>
+                        <div className="text-xs text-gray-600">Rank #{location.rank || index + 1}</div>
+                      </div>
+                      <div className={`px-1 py-1 rounded text-xs font-bold ${getScoreColor(location.score || 0)}`}>
+                        {location.score || 0}%
+                      </div>
                     </div>
                   </div>
+                ))
+              ) : (
+                <div className="p-2 text-center text-gray-500 text-xs">
+                  No locations found. Please try a different search.
                 </div>
-              ))}
+              )}
             </div>
           </div>
 
