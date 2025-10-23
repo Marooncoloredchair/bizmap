@@ -76,6 +76,9 @@ const AISearchInterface = ({ onSearchComplete, isLoading, setIsLoading, setIsInC
     // Add user message
     addMessage('user', userMessage)
     
+    // Extract info from user message and update searchData
+    updateSearchDataFromMessage(userMessage)
+    
     // If this is the first message, transition to conversation mode
     if (currentStep === 'search') {
       setCurrentStep('conversation')
@@ -124,13 +127,166 @@ const AISearchInterface = ({ onSearchComplete, isLoading, setIsLoading, setIsInC
       return true
     }
 
-    // If the user simply says yes, keep the conversation going instead of analyzing
+    // Helper: extract info from user message and update searchData
+    const updateSearchDataFromMessage = (message) => {
+      const lowerMsg = message.toLowerCase()
+      const updates = {}
+      
+      // Extract location info
+      if (lowerMsg.includes('downtown') || lowerMsg.includes('city center')) {
+        updates.location_preference = 'downtown'
+      } else if (lowerMsg.includes('neighborhood') || lowerMsg.includes('residential')) {
+        updates.location_preference = 'neighborhood'
+      } else if (lowerMsg.includes('suburb')) {
+        updates.location_preference = 'suburban'
+      }
+      
+      // Extract business type
+      if (lowerMsg.includes('barber') || lowerMsg.includes('barbershop')) {
+        updates.business_type = 'Barbershop'
+        updates.business_category = 'service'
+      } else if (lowerMsg.includes('coffee') || lowerMsg.includes('cafe')) {
+        updates.business_type = 'Coffee Shop'
+        updates.business_category = 'restaurant'
+      } else if (lowerMsg.includes('restaurant') || lowerMsg.includes('food')) {
+        updates.business_type = 'Restaurant'
+        updates.business_category = 'restaurant'
+      }
+      
+      // Extract demographics
+      if (lowerMsg.includes('mix') || lowerMsg.includes('everyone') || lowerMsg.includes('anyone')) {
+        updates.target_demographic = 'general population'
+      } else if (lowerMsg.includes('professional')) {
+        updates.target_demographic = 'professionals'
+      } else if (lowerMsg.includes('student')) {
+        updates.target_demographic = 'students'
+      } else if (lowerMsg.includes('family')) {
+        updates.target_demographic = 'families'
+      }
+      
+      // Extract budget info
+      if (lowerMsg.includes('budget') || lowerMsg.includes('cheap') || lowerMsg.includes('affordable')) {
+        updates.budget_tier = 'budget'
+      } else if (lowerMsg.includes('premium') || lowerMsg.includes('luxury') || lowerMsg.includes('high-end')) {
+        updates.budget_tier = 'premium'
+      } else if (lowerMsg.includes('mid') || lowerMsg.includes('medium')) {
+        updates.budget_tier = 'mid'
+      }
+      
+      // Extract hours
+      if (lowerMsg.includes('morning') || lowerMsg.includes('day')) {
+        updates.operating_hours = 'day'
+      } else if (lowerMsg.includes('evening') || lowerMsg.includes('night')) {
+        updates.operating_hours = 'evening'
+      } else if (lowerMsg.includes('both') || lowerMsg.includes('all day')) {
+        updates.operating_hours = 'both'
+      }
+      
+      // Update searchData with extracted info
+      if (Object.keys(updates).length > 0) {
+        setSearchData(prev => ({ ...prev, ...updates }))
+        console.log('Updated searchData with:', updates)
+      }
+    }
+
+    // If the user simply says yes, check if we have enough info to proceed
     if (isAffirmative && !isExplicitAnalyze) {
-      // Ask for the next missing detail, if any
-      const asked = askNextQuestionIfNeeded()
-      if (!asked) {
-        // If we already have enough info, ask for explicit confirmation
-        addMessage('ai', 'Awesome. When you are ready, say "analyze locations now" and I will run the analysis.')
+      // Check if we have the minimum required info
+      const hasBusinessType = searchData.business_type && searchData.business_type !== 'General Business'
+      const hasLocation = searchData.location_preference || userMessage.toLowerCase().includes('downtown') || userMessage.toLowerCase().includes('providence')
+      
+      if (hasBusinessType && hasLocation) {
+        // We have enough info, proceed to analysis
+        addMessage('ai', "Perfect! Let me analyze the best locations for you...")
+        
+        // Set location preference if not already set
+        if (!searchData.location_preference) {
+          if (userMessage.toLowerCase().includes('downtown')) {
+            setSearchData(prev => ({ ...prev, location_preference: 'downtown' }))
+          } else if (userMessage.toLowerCase().includes('providence')) {
+            setSearchData(prev => ({ ...prev, location_preference: 'Providence, RI' }))
+          }
+        }
+        
+        // Proceed to analysis
+        try {
+          console.log('Proceeding to analysis with searchData:', searchData);
+          const response = await fetch('/api/ai-analyze', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userInput: 'proceed with analysis',
+              context: searchData,
+              currentStep: 'analysis'
+            })
+          })
+
+          if (!response.ok) {
+            throw new Error(`HTTP error during ai-analyze: ${response.status}`)
+          }
+          const data = await response.json()
+          console.log('AI analysis response:', data)
+          
+          if (data.error) {
+            throw new Error(data.error)
+          }
+
+          // Use the full analysis data from backend (prefer /analyze for consistent structure)
+          if (data && data.locations) {
+            setTimeout(() => onSearchComplete(data), 800)
+            return
+          }
+
+          // Build payload for /analyze using analysis context
+          const analyzePayload = {
+            business: searchData.business_type || 'Restaurant',
+            location: searchData.location_preference || 'Providence, RI',
+            radius: '1 mile',
+            priceTier: searchData.budget_tier || 'mid',
+            daypart: searchData.operating_hours || 'both'
+          }
+
+          console.log('Sending analyze request with payload:', analyzePayload)
+
+          const analyzeRes = await fetch('/api/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(analyzePayload)
+          })
+          
+          if (!analyzeRes.ok) {
+            throw new Error(`HTTP error during analyze: ${analyzeRes.status}`)
+          }
+          
+          const analyzeData = await analyzeRes.json()
+          console.log('Analyze response data:', analyzeData)
+          
+          // Ensure the data has the required structure for ResultsDisplay
+          const transformedData = {
+            business: searchData.business_type || 'Restaurant',
+            location: searchData.location_preference || 'Providence, RI',
+            radius: '1 mile',
+            confidence: searchData.confidence_score || 85,
+            ...analyzeData
+          }
+          
+          console.log('Transformed data for ResultsDisplay:', transformedData)
+          setTimeout(() => onSearchComplete(transformedData), 800)
+          return
+        } catch (error) {
+          console.error('Error:', error)
+          addMessage('ai', "I'm sorry, I encountered an error while analyzing locations. Please try again.")
+          return
+        }
+      } else {
+        // Ask for the next missing detail, if any
+        const asked = askNextQuestionIfNeeded()
+        if (!asked) {
+          // If we already have enough info, ask for explicit confirmation
+          addMessage('ai', 'Awesome. When you are ready, say "analyze locations now" and I will run the analysis.')
+        }
       }
       setIsLoading(false)
       setIsTyping(false)
