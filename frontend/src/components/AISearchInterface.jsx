@@ -66,6 +66,95 @@ const AISearchInterface = ({ onSearchComplete, isLoading, setIsLoading, setIsInC
     }, 100)
   }
 
+  // Helper: ask the next follow-up question if key details are missing
+  const askNextQuestionIfNeeded = () => {
+    const missing = []
+    if (!searchData.location_preference) missing.push('location')
+    if (!searchData.budget_tier) missing.push('budget')
+    if (!searchData.operating_hours) missing.push('hours')
+    if (!searchData.target_demographic) missing.push('demographics')
+
+    if (missing.length === 0) {
+      return false
+    }
+
+    let q = ''
+    const first = missing[0]
+    if (first === 'location') {
+      q = 'Great! Which area are you targeting? Downtown, neighborhood, or a specific part of the city?'
+    } else if (first === 'budget') {
+      q = "What's your approximate monthly budget for rent? Low, mid, or premium?"
+    } else if (first === 'hours') {
+      q = 'What hours will you operate? Daytime, evenings, or both?'
+    } else if (first === 'demographics') {
+      q = "Who's your target customer? Professionals, students, families, or a mix?"
+    }
+    addMessage('ai', q)
+    return true
+  }
+
+  // Helper: extract info from user message and update searchData
+  const updateSearchDataFromMessage = (message) => {
+    const lowerMsg = message.toLowerCase()
+    const updates = {}
+    
+    // Extract location info
+    if (lowerMsg.includes('downtown') || lowerMsg.includes('city center')) {
+      updates.location_preference = 'downtown'
+    } else if (lowerMsg.includes('neighborhood') || lowerMsg.includes('residential')) {
+      updates.location_preference = 'neighborhood'
+    } else if (lowerMsg.includes('suburb')) {
+      updates.location_preference = 'suburban'
+    }
+    
+    // Extract business type
+    if (lowerMsg.includes('barber') || lowerMsg.includes('barbershop')) {
+      updates.business_type = 'Barbershop'
+      updates.business_category = 'service'
+    } else if (lowerMsg.includes('coffee') || lowerMsg.includes('cafe')) {
+      updates.business_type = 'Coffee Shop'
+      updates.business_category = 'restaurant'
+    } else if (lowerMsg.includes('restaurant') || lowerMsg.includes('food')) {
+      updates.business_type = 'Restaurant'
+      updates.business_category = 'restaurant'
+    }
+    
+    // Extract demographics
+    if (lowerMsg.includes('mix') || lowerMsg.includes('everyone') || lowerMsg.includes('anyone')) {
+      updates.target_demographic = 'general population'
+    } else if (lowerMsg.includes('professional')) {
+      updates.target_demographic = 'professionals'
+    } else if (lowerMsg.includes('student')) {
+      updates.target_demographic = 'students'
+    } else if (lowerMsg.includes('family')) {
+      updates.target_demographic = 'families'
+    }
+    
+    // Extract budget info
+    if (lowerMsg.includes('budget') || lowerMsg.includes('cheap') || lowerMsg.includes('affordable')) {
+      updates.budget_tier = 'budget'
+    } else if (lowerMsg.includes('premium') || lowerMsg.includes('luxury') || lowerMsg.includes('high-end')) {
+      updates.budget_tier = 'premium'
+    } else if (lowerMsg.includes('mid') || lowerMsg.includes('medium')) {
+      updates.budget_tier = 'mid'
+    }
+    
+    // Extract hours
+    if (lowerMsg.includes('morning') || lowerMsg.includes('day')) {
+      updates.operating_hours = 'day'
+    } else if (lowerMsg.includes('evening') || lowerMsg.includes('night')) {
+      updates.operating_hours = 'evening'
+    } else if (lowerMsg.includes('both') || lowerMsg.includes('all day')) {
+      updates.operating_hours = 'both'
+    }
+    
+    // Update searchData with extracted info
+    if (Object.keys(updates).length > 0) {
+      setSearchData(prev => ({ ...prev, ...updates }))
+      console.log('Updated searchData with:', updates)
+    }
+  }
+
   const handleSendMessage = async (e) => {
     if (e) e.preventDefault()
     if (!inputValue.trim() || isLoading) return
@@ -99,95 +188,6 @@ const AISearchInterface = ({ onSearchComplete, isLoading, setIsLoading, setIsInC
                               lowerMsg.includes('start analysis') ||
                               lowerMsg.includes("let's analyze") ||
                               lowerMsg.includes('begin analysis')
-
-    // Helper: ask the next follow-up question if key details are missing
-    const askNextQuestionIfNeeded = () => {
-      const missing = []
-      if (!searchData.location_preference) missing.push('location')
-      if (!searchData.budget_tier) missing.push('budget')
-      if (!searchData.operating_hours) missing.push('hours')
-      if (!searchData.target_demographic) missing.push('demographics')
-
-      if (missing.length === 0) {
-        return false
-      }
-
-      let q = ''
-      const first = missing[0]
-      if (first === 'location') {
-        q = 'Great! Which area are you targeting? Downtown, neighborhood, or a specific part of the city?'
-      } else if (first === 'budget') {
-        q = "What's your approximate monthly budget for rent? Low, mid, or premium?"
-      } else if (first === 'hours') {
-        q = 'What hours will you operate? Daytime, evenings, or both?'
-      } else if (first === 'demographics') {
-        q = "Who's your target customer? Professionals, students, families, or a mix?"
-      }
-      addMessage('ai', q)
-      return true
-    }
-
-    // Helper: extract info from user message and update searchData
-    const updateSearchDataFromMessage = (message) => {
-      const lowerMsg = message.toLowerCase()
-      const updates = {}
-      
-      // Extract location info
-      if (lowerMsg.includes('downtown') || lowerMsg.includes('city center')) {
-        updates.location_preference = 'downtown'
-      } else if (lowerMsg.includes('neighborhood') || lowerMsg.includes('residential')) {
-        updates.location_preference = 'neighborhood'
-      } else if (lowerMsg.includes('suburb')) {
-        updates.location_preference = 'suburban'
-      }
-      
-      // Extract business type
-      if (lowerMsg.includes('barber') || lowerMsg.includes('barbershop')) {
-        updates.business_type = 'Barbershop'
-        updates.business_category = 'service'
-      } else if (lowerMsg.includes('coffee') || lowerMsg.includes('cafe')) {
-        updates.business_type = 'Coffee Shop'
-        updates.business_category = 'restaurant'
-      } else if (lowerMsg.includes('restaurant') || lowerMsg.includes('food')) {
-        updates.business_type = 'Restaurant'
-        updates.business_category = 'restaurant'
-      }
-      
-      // Extract demographics
-      if (lowerMsg.includes('mix') || lowerMsg.includes('everyone') || lowerMsg.includes('anyone')) {
-        updates.target_demographic = 'general population'
-      } else if (lowerMsg.includes('professional')) {
-        updates.target_demographic = 'professionals'
-      } else if (lowerMsg.includes('student')) {
-        updates.target_demographic = 'students'
-      } else if (lowerMsg.includes('family')) {
-        updates.target_demographic = 'families'
-      }
-      
-      // Extract budget info
-      if (lowerMsg.includes('budget') || lowerMsg.includes('cheap') || lowerMsg.includes('affordable')) {
-        updates.budget_tier = 'budget'
-      } else if (lowerMsg.includes('premium') || lowerMsg.includes('luxury') || lowerMsg.includes('high-end')) {
-        updates.budget_tier = 'premium'
-      } else if (lowerMsg.includes('mid') || lowerMsg.includes('medium')) {
-        updates.budget_tier = 'mid'
-      }
-      
-      // Extract hours
-      if (lowerMsg.includes('morning') || lowerMsg.includes('day')) {
-        updates.operating_hours = 'day'
-      } else if (lowerMsg.includes('evening') || lowerMsg.includes('night')) {
-        updates.operating_hours = 'evening'
-      } else if (lowerMsg.includes('both') || lowerMsg.includes('all day')) {
-        updates.operating_hours = 'both'
-      }
-      
-      // Update searchData with extracted info
-      if (Object.keys(updates).length > 0) {
-        setSearchData(prev => ({ ...prev, ...updates }))
-        console.log('Updated searchData with:', updates)
-      }
-    }
 
     // If the user simply says yes, check if we have enough info to proceed
     if (isAffirmative && !isExplicitAnalyze) {
@@ -495,7 +495,7 @@ const AISearchInterface = ({ onSearchComplete, isLoading, setIsLoading, setIsInC
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      handleSendMessage()
+      handleSendMessage(e)
     }
   }
 
