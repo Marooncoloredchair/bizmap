@@ -1,12 +1,10 @@
-import React, { useState, Suspense, lazy } from 'react'
+import React, { useState } from 'react'
+import SearchFlow from './components/SearchFlow'
+import AISearchInterface from './components/AISearchInterface'
+import ResultsDisplay from './components/ResultsDisplay'
 import ErrorBoundary from './components/ErrorBoundary'
 import { DarkModeProvider, useDarkMode } from './contexts/DarkModeContext'
 import './App.css'
-
-// Lazy load components to prevent circular dependencies
-const SearchFlow = lazy(() => import('./components/SearchFlow'))
-const AISearchInterface = lazy(() => import('./components/AISearchInterface'))
-const ResultsDisplay = lazy(() => import('./components/ResultsDisplay'))
 
 function AppContent() {
   const [searchData, setSearchData] = useState(null)
@@ -98,27 +96,21 @@ function AppContent() {
           searchData ? '-translate-y-full opacity-0' : 'translate-y-0 opacity-100'
         }`}>
           <div className="text-center w-full max-w-6xl px-4">
-            <Suspense fallback={
-              <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-              </div>
-            }>
-              {searchMode === 'ai' ? (
-                <AISearchInterface
-                  onSearchComplete={handleSearchComplete}
-                  isLoading={isLoading}
-                  setIsLoading={setIsLoading}
-                  setIsInConversation={setIsInConversation}
-                  onConversationStart={handleConversationStart}
-                />
-              ) : (
-                <SearchFlow
-                  onSearchComplete={handleSearchComplete}
-                  isLoading={isLoading}
-                  setIsLoading={setIsLoading}
-                />
-              )}
-            </Suspense>
+            {searchMode === 'ai' ? (
+              <AISearchInterface
+                onSearchComplete={handleSearchComplete}
+                isLoading={isLoading}
+                setIsLoading={setIsLoading}
+                setIsInConversation={setIsInConversation}
+                onConversationStart={handleConversationStart}
+              />
+            ) : (
+              <SearchFlow
+                onSearchComplete={handleSearchComplete}
+                isLoading={isLoading}
+                setIsLoading={setIsLoading}
+              />
+            )}
           </div>
         </div>
         {/* Results Display - slides up from bottom */}
@@ -126,18 +118,12 @@ function AppContent() {
           <div className={`w-full h-[85vh] transition-all duration-1000 ease-in-out z-0 ${
             searchData ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
           }`}>
-            <Suspense fallback={
-              <div className="flex items-center justify-center h-full">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-              </div>
-            }>
-              <ResultsDisplay
-                data={searchData}
-                onNewSearch={handleNewSearch}
-                isLoading={isLoading}
-                setIsLoading={setIsLoading}
-              />
-            </Suspense>
+            <ResultsDisplay
+              data={searchData}
+              onNewSearch={handleNewSearch}
+              isLoading={isLoading}
+              setIsLoading={setIsLoading}
+            />
           </div>
         )}
       </main>
