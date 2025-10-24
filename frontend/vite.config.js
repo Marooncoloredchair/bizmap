@@ -6,10 +6,30 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          leaflet: ['leaflet', 'react-leaflet'],
-          utils: ['dompurify']
+        manualChunks: (id) => {
+          // Split vendor libraries
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom')) {
+              return 'vendor'
+            }
+            if (id.includes('leaflet') || id.includes('react-leaflet')) {
+              return 'leaflet'
+            }
+            if (id.includes('dompurify')) {
+              return 'utils'
+            }
+            return 'vendor'
+          }
+          // Split app code
+          if (id.includes('src/components/MapComponent') || id.includes('src/components/LazyMap')) {
+            return 'map'
+          }
+          if (id.includes('src/components/ResultsDisplay')) {
+            return 'results'
+          }
+          if (id.includes('src/components/AISearchInterface')) {
+            return 'ai'
+          }
         }
       }
     },
